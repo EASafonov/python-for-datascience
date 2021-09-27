@@ -5,12 +5,16 @@ import numpy as np
 from scipy.linalg import solve
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
-NavigationToolbar2Tk)
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+import pandas as pd
+
+
+sizes = []
+fig = ''
 
 root = Tk()
 root.title("Расчёт витаминов")
-#root.geometry('640x480')
+root.geometry('640x480')
 
 # columns labels
 l0_0 = Label(root, text='Продукт')
@@ -102,24 +106,22 @@ ent5_4.grid(row=5, column=4, sticky=W, pady=10)
 ent5_5.grid(row=5, column=5, sticky=W, pady=10)
 
 def calculate_proportion():
+    global sizes
     data = np.array([
-        [format_value(ent1_1), format_value(ent2_1), format_value(ent3_1), format_value(ent4_1), format_value(ent5_1)],
-        [format_value(ent1_2), format_value(ent2_2), format_value(ent3_2), format_value(ent4_2), format_value(ent5_2)],
-        [format_value(ent1_3), format_value(ent2_3), format_value(ent3_3), format_value(ent4_3), format_value(ent5_3)],
-        [format_value(ent1_4), format_value(ent2_4), format_value(ent3_4), format_value(ent4_4), format_value(ent5_4)],
-        [format_value(ent1_5), format_value(ent2_5), format_value(ent3_5), format_value(ent4_5), format_value(ent5_5)],
+        [ent1_1, ent2_1, ent3_1, ent4_1, ent5_1],
+        [ent1_2, ent2_2, ent3_2, ent4_2, ent5_2],
+        [ent1_3, ent2_3, ent3_3, ent4_3, ent5_3],
+        [ent1_4, ent2_4, ent3_4, ent4_4, ent5_4],
+        [ent1_5, ent2_5, ent3_5, ent4_5, ent5_5],
     ])
+    vfunc = np.vectorize(format_value)
+    data = vfunc(data)
     targets = np.array([170, 180, 140, 180, 350]).reshape((5, 1))
     x = solve(data, targets)
-
     labels = ['Продукт 1', 'Продукт 2', 'Продукт 3', 'Продукт 4', 'Продукт 5']
     sizes = x.reshape(1, 5)[0].tolist()
-    print(type(sizes))
     colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue', 'red']
-    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
-    plt.axis('equal')
-    plt.show()
-    #draw_plot(root, x, labels, colors)
+    draw_plot(root, sizes, labels, colors)
     print(x)
 
 
@@ -132,11 +134,10 @@ def format_value(value):
 
 
 def draw_plot(tk_window, results, lbls, clrs):
+    global fig
     # the figure that will contain the plot
-    fig = Figure(figsize=(5, 5),
+    fig = Figure(figsize=(4, 3),
                  dpi=100)
-
-    # list of squares
     y = results
 
     # adding the subplot
@@ -157,58 +158,28 @@ def draw_plot(tk_window, results, lbls, clrs):
     canvas.draw()
 
     # placing the canvas on the Tkinter window
-    canvas.get_tk_widget().grid(row=6, column=2, sticky=W, pady=10)
+    canvas.get_tk_widget().grid(row=6, column=0, columnspan=4, rowspan=3, sticky=E, pady=10)
 
-    # creating the Matplotlib toolbar
-    toolbar = NavigationToolbar2Tk(canvas,
-                                   tk_window)
-    toolbar.update()
 
-    # placing the toolbar on the Tkinter window
-    canvas.get_tk_widget().grid(row=6, column=1, sticky=W, pady=10)
+def save_data():
+    global sizes
+    df = pd.DataFrame(sizes)
+    df.to_csv('results.csv', sep=';')
+    pass
+
+
+def save_plot():
+    fig.savefig('pieplot.png')
 
 
 button_calc = Button(root, text="Рассчитать", command=calculate_proportion)
 button_calc.grid(row=6, column=5, sticky=W, pady=10)
 
+save_data_button = Button(root, text="Сохранить данные", command=save_data)
+save_data_button.grid(row=7, column=5, sticky=W, pady=10)
+
+save_plot_button = Button(root, text="Сохранить диаграмму", command=save_plot)
+save_plot_button.grid(row=8, column=5, sticky=W, pady=10)
+
 root.bind('<Escape>', lambda x: root.destroy())
 root.mainloop()
-
-
-
-
-
-
-'''
-def make_ent(window, row_num, col_num):
-    new_ent = Entry(window, width=10)
-    new_ent.grid(row=row_num, column=col_num, sticky=W, pady=10)
-    return new_ent.get()
-
-proportion_list = []
-
-for row in range(1, 6):
-    row_list = []
-    for column in range(0, 6):
-        vitamine_num = make_ent(root, row, column)
-        row_list.append(vitamine_num)
-    proportion_list.append(row_list)
-print(proportion_list)
-'''#ent.pack()
-
-#frame1 = Frame(root, width=100, height=100, bg="darkred")
-#frame1['padding'] = (5, 10)
-#frame1['borderwidth'] = 1
-#frame1['relief'] = 'sunken'
-#frame2 = Frame(root, width=100, height=100, bg="green")
-#frame3 = Frame(root, width=100, height=100, bg="darkred")
-#frame4 = Frame(root, width=100, height=100, bg="green")
-#frame5 = Frame(root, width=100, height=100, bg="darkred")
-
-#frame1.pack()
-#frame2.pack()
-#frame3.pack()
-#frame4.pack()
-#frame5.pack()
-
-
